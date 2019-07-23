@@ -17,20 +17,86 @@
 <body>
     <!-- You may change the dimensions of this canvas -->
     <canvas id="myCanvas" width="750px" height="750px"></canvas>
+    
+  </div>
 </body>
 <script>
-
+    function getRandomInt(max) {
+      return Math.floor(Math.random() * Math.floor(max));
+    }
+  
+    var colors = ['red', 'green', 'blue', 'brown', 'orange', 'pink', 'black', 'purple', 'yellow'];
+    var id = getRandomInt(9); 
+  
     // setting up the canvas and one paper tool
-    var canvas = document.getElementById('myCanvas');
-    paper.setup(canvas);
-    var tool = new paper.Tool();
+    window.onload = function() {
+      var canvas = document.getElementById('myCanvas');
+      paper.setup(canvas);
+      var tool = new paper.Tool();
+      var path = new paper.Path(); 
+      var paths = {id: path}; 
+      // getting the URL (you may want to use for Exercise 3)
+      var url = window.location.href;
+      var containsLarge = (url.indexOf("large") > -1);
 
-    // getting the URL (you may want to use for Exercise 3)
-    var url = window.location.href;
+      var socket = new WebSocket('wss://p3-websockets-davidlin0241-david-lin770443.codeanyapp.com/ws/draw');
 
-    // var socket = new WebSocket(
-    //     'wss://<your url here>/ws/draw');
+      socket.onmessage = function (msg) {
+        //console.log(msg); // prints message when receive
+        
+        if (containsLarge) {
+          var msgP = JSON.parse(msg.data);
+          var x = msgP.x;
+          var y = msgP.y;
+          var pid = msgP.id;
+          var color = colors[pid];
+          var point = new paper.Point(x, y);
 
+          //paths dictionary is NOT shared between each browser..
+          if (!(pid in paths)) {
+            paths[pid] = new paper.Path(); 
+          }
 
+          paths[pid].strokeColor = color;
+          paths[pid].add(point);
+        } else {
+          return;
+        }
+      }
+       
+
+      tool.onMouseMove = function(event) {
+        if (!containsLarge) {
+          path.strokeColor = colors[id];
+          path.add(event.point);
+
+          var pointD = {"x": event.point.x, "y": event.point.y, "id": id};
+          var pointS = JSON.stringify(pointD);
+          socket.send(pointS);     
+        }
+      }
+      
+      socket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+      };
+      
+      $(document).ready(() => {
+        window.addEventListener('devicemotion', (event) => {
+          if ((Math.abs(event.acceleration.x) > 25) || (Math.abs(event.acceleration.y) > 25) || (Math.abs(event.acceleration.z) > 25)){
+            paper.project.clear();
+          }
+        });
+
+        window.addEventListener('deviceorientation', (event) => {
+          if ((Math.abs(event.gamma) > 50)) {
+            path.strokeColor = colors[getRandomInt(9)];
+          }
+        });
+      })  
+    }
+
+    
+    
 </script>
 </html>
+
