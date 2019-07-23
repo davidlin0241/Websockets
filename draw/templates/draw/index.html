@@ -35,6 +35,7 @@
       var tool = new paper.Tool();
       var path = new paper.Path(); 
       var paths = {id: path}; 
+      //path.strokeWidth = "20";
       // getting the URL (you may want to use for Exercise 3)
       var url = window.location.href;
       var containsLarge = (url.indexOf("large") > -1);
@@ -44,7 +45,7 @@
       socket.onmessage = function (msg) {
         //console.log(msg); // prints message when receive
         
-        if (containsLarge) {
+       if (containsLarge) {
           var msgP = JSON.parse(msg.data);
           var x = msgP.x;
           var y = msgP.y;
@@ -82,7 +83,7 @@
       
       $(document).ready(() => {
         window.addEventListener('devicemotion', (event) => {
-          if ((Math.abs(event.acceleration.x) > 25) || (Math.abs(event.acceleration.y) > 25) || (Math.abs(event.acceleration.z) > 25)){
+          if ((Math.abs(event.acceleration.x) > 10) || (Math.abs(event.acceleration.y) > 10) || (Math.abs(event.acceleration.z) > 10)){
             paper.project.clear();
           }
         });
